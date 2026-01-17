@@ -1,53 +1,58 @@
-name: Deploy to Azure ML
+name: Credit Risk Prediction Model
 
-# This makes the workflow reusable
+# Trigger workflow on push or pull request to main branch
 on:
-  workflow_call:
-
-# Required secrets for Azure login and ML deployment
-secrets:
-  AZURE_CLIENT_ID:
-    required: true
-  AZURE_TENANT_ID:
-    required: true
-  AZURE_SUBSCRIPTION_ID:
-    required: true
-  AZURE_RESOURCE_GROUP:
-    required: true
-  AZURE_ML_WORKSPACE:
-    required: true
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-train-test:
+  build-train-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # 1. Debug start
+      - name: Debug start
+        run: echo "Starting Credit Risk CI/CD workflow"
+
+      # 2. Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup Python
+      # 3. Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      # 3. Install dependencies
+      # 4. Install dependencies
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install azure-ai-ml azure-identity python-dotenv matplotlib
 
-      # 4. Run training tests
+      # 5. Pre-check secrets
+      - name: Check Azure secrets
+        run: |
+          : "${{ secrets.AZURE_CLIENT_ID?Missing AZURE_CLIENT_ID secret}}"
+          : "${{ secrets.AZURE_TENANT_ID?Missing AZURE_TENANT_ID secret}}"
+          : "${{ secrets.AZURE_SUBSCRIPTION_ID?Missing AZURE_SUBSCRIPTION_ID secret}}"
+          : "${{ secrets.AZURE_RESOURCE_GROUP?Missing AZURE_RESOURCE_GROUP secret}}"
+          : "${{ secrets.AZURE_ML_WORKSPACE?Missing AZURE_ML_WORKSPACE secret}}"
+          
+      # 6. Run training tests
       - name: Run training test
         run: python -m tests.test_training
 
-      # 5. Train the model
+      # 7. Train the model
       - name: Train model
         run: python src/train.py
 
-      # 6. Azure login
+      # 8. Azure login
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -56,7 +61,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
-      # 7. Deploy trained model to Azure ML
+      # 9. Deploy trained model to Azure ML
       - name: Deploy Trained Model to Azure ML
         env:
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
