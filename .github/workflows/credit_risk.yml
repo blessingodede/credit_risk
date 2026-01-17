@@ -40,8 +40,8 @@ jobs:
 
       - name: Deploy Trained Model to Azure ML
         env:
-	 AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-         AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-         AZURE_ML_WORKSPACE: ${{ vars.AZURE_ML_WORKSPACE }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AZURE_ML_WORKSPACE: ${{ vars.AZURE_ML_WORKSPACE }}
         run: python src/deploy_model.py
 
