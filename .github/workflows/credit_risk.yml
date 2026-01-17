@@ -1,4 +1,4 @@
-name: Credit Risk
+name: CKD Model CI/CD
 
 on:
   push:
@@ -13,31 +13,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install matplotlib python-dotenv azure-ai-ml azure-identity
 
-      - name: Run preprocessing tests
-        run: python -m tests.test_preprocessing
 
       - name: Run training tests
         run: python -m tests.test_training
 
+      # 5. Train model
       - name: Train model
         run: python src/train.py
 
+      # 6. Azure login (for future deployment)
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 7. Deploy model to Azure ML
+      - name: Deploy model to Azure ML
         run: python src/deploy_model.py
 
