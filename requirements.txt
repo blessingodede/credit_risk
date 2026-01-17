@@ -1,5 +1,6 @@
 scikit-learn
 numpy
 pandas
+matplotlib
 azure-ai-ml
 azure-identity
